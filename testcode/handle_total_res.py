@@ -31,7 +31,7 @@ with open('../data/testres/id_to_word.txt','r') as f:
     line=f.readline().strip()
     id_to_word=json.loads(line)
 
-
+# 初始化结果容器
 total_dic = {}
 hit_dic = {}
 acc_dic={}
@@ -46,12 +46,7 @@ t_total_dic={}
 t_hit_dic={}
 t_acc_dic={}
 
-
-topN=10
-
-
-
-
+topN=5
 with open(res_path, 'r') as f:
     while True:
         true_output_line = f.readline().strip()
@@ -69,13 +64,13 @@ with open(res_path, 'r') as f:
                 candidate_t=[item for item in pred_output[i] if(generate_test_data.is_terminal(id_to_word[str(item)]))]
                 if len(candidate_t)>=topN:
                     dic_add_item(t_total_dic,target_id,1)
-                    if target_id in candidate_t:
+                    if target_id in candidate_t[:topN]:
                         dic_add_item(t_hit_dic,target_id,1)
             elif(generate_test_data.is_nonterminal(token)):
                 candidate_nt=[item for item in pred_output[i] if(generate_test_data.is_nonterminal(id_to_word[str(item)]))]
                 if len(candidate_nt)>=topN:
                     dic_add_item(nt_total_dic,target_id,1)
-                    if target_id in candidate_nt:
+                    if target_id in candidate_nt[:topN]:
                         dic_add_item(nt_hit_dic,target_id,1)
 
             dic_add_item(total_dic,target_id,1)
