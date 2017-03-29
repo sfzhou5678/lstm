@@ -1,35 +1,35 @@
 # encoding:utf-8
 
 
-stop_words={'{','}','NameConstant'}
+stop_words={'{','}','NameConstant','PAD'}
+stop_terminal_set={'AsName','ModuleName','ClassName','FuncName','AsyncFuncName'}
 terminal_set= {'Num','Arg','Str','Bytes','True','False',
-               'Name','AsName','AttrName','Key','ModuleName','ClassName','FuncName','AsyncFuncName'}
+                      'Name','AttrName','Key'}
 
-
-def is_terminal(type):
+def is_terminal(token):
     """
     处理终结符，终结符要么是terminal_set第一行中的特殊符号，或者是如Name('a')这种带括号的形式
-    :param type:
+    :param token:
     :param isTerminalSet:
     :return:
     """
-    if type in terminal_set:
+    if token in terminal_set:
         return True
-    if(type.endswith(')') and type.find(r'(')>=0):
+    if(token.endswith(')') and token.find(r'(')>=0):
         return True
     return False
 
 
-def is_nonterminal(type):
+def is_nonterminal(token):
     """
     处理终结符，终结符要么是terminal_set第一行中的特殊符号，或者是如Name('a')这种带括号的形式
-    :param type:
+    :param token:
     :param isTerminalSet:
     :return:
     """
-    if type in terminal_set:
+    if token in terminal_set:
         return False
-    if(type.endswith(')') and type.find(r'(')>=0):
+    if(token.endswith(')') and token.find(r'(')>=0):
         return False
     return True
 
@@ -38,17 +38,17 @@ def handle_line(line, wf, isTerminalSet=True):
     cur_line_data=""
     count=0
     types=line.split(" ")
-    for type in types:
+    for token in types:
         count+=1
         if(count>800):
             break;
-        cur_line_data+=" "+type
+        cur_line_data+=" "+token
         if count%100==0:
-            if type in stop_words:
+            if token in stop_words:
                 continue
-            if(is_terminal(type) and isTerminalSet and count>10):
+            if(is_terminal(token) and isTerminalSet and count>10):
                 wf.write(cur_line_data+"\n")
-            elif(is_nonterminal(type) and not isTerminalSet and count>10):
+            elif(is_nonterminal(token) and not isTerminalSet and count>10):
                 wf.write(cur_line_data+"\n")
 
 #
