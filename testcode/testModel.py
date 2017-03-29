@@ -1,6 +1,6 @@
 
-#todo 这里决定生成哪个模型的测试 ：  from 模型名字 import *
-from newmodel.without_init import *
+# 这里决定生成哪个模型的测试 ：  from 模型名字 import *
+from newmodel.basic_ptb import *
 from tools import data_reader
 import json
 
@@ -80,7 +80,7 @@ def SaveTestRes():
 
 
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
-    # todo raw_data还应包含weights
+
     raw_data = data_reader.raw_data(FLAGS.data_path, word_to_id, config.num_steps)
     train_data, test_data,voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
     id_to_word = data_reader.reverseDic(word_to_id)
@@ -107,5 +107,3 @@ def SaveTestRes():
             print("Test Perplexity: %.3f" % test_perplexity)
 
 SaveTestRes()
-
-#todo add 准确率统计 区分NT（NT再次区分是一个问题） 和 T

@@ -3,7 +3,7 @@
 
 stop_words={'{','}','NameConstant','PAD'}
 stop_terminal_set={'AsName','ModuleName','ClassName','FuncName','AsyncFuncName'}
-terminal_set= {'Num','Arg','Str','Bytes','True','False',
+terminal_set= {'Num','Arg','Str','Bytes','True','False','UNK',
                       'Name','AttrName','Key'}
 
 def is_terminal(token):

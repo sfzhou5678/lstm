@@ -46,7 +46,7 @@ t_total_dic={}
 t_hit_dic={}
 t_acc_dic={}
 
-topN=5
+topN=1
 with open(res_path, 'r') as f:
     while True:
         true_output_line = f.readline().strip()

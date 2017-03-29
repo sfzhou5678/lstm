@@ -23,21 +23,25 @@ def display_detail(filepath):
         for (k,v) in acc_dic:
             if(k in stop_words):
                 continue
-            # if(total_dic[k]<50):
-            #     continue
-            if v >0:
+            # if(total_dic[k]>=20 and v > 0 and v<1):
+            #     print('%s  %.3f  %d'%(id_to_word[k],v,total_dic[k]))
                 # print(str(id_to_word[k])+' , '+str(v)+" , "+str(total_dic[k]))
+            if v >0:
                 total_sum+=total_dic[k]
                 hit_sum+=hit_dic[k]
 
-            # if v>0:
-            #     print(str(k)+' , '+str(v))
+                # if v>0:
+                #     print(str(k)+' , '+str(v))
         print(total_tokens)
         print(total_sum)
         print(hit_sum)
         print(hit_sum/total_tokens)
 
-# filePath=r'../data/testres/total_res_dic.txt'
+filePath=r'../data/testres/total_res_dic.txt'
+
+print("============display total===================")
+display_detail(filePath)
+
 nt_filepath=r'../data/testres/nonterminal_res_dic.txt'
 t_filepath=r'../data/testres/terminal_res_dic.txt'
 
