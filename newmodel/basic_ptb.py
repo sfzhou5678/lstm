@@ -299,7 +299,7 @@ class SmallConfig(object):
     learning_rate = 1.0
     max_grad_norm = 5
     num_layers = 2
-    num_steps = 60
+    num_steps = 400
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
@@ -504,12 +504,6 @@ def train():
                              START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
             tf.summary.scalar("Training Loss", m.cost)
             tf.summary.scalar("Learning Rate", m.lr)
-
-        # with tf.name_scope("Valid"):
-        #     valid_input = PTBInput(config=config, data=valid_data, name="ValidInput")
-        #     with tf.variable_scope("Model", reuse=True, initializer=initializer):
-        #         mvalid = PTBModel(is_training=False, config=config, input_=valid_input)
-        #     tf.scalar_summary("Validation Loss", mvalid.cost)
 
         with tf.name_scope("Test"):
             test_input = PTBInput(config=eval_config, data=test_data, name="TestInput")

@@ -81,7 +81,7 @@ flags.DEFINE_bool("use_fp16", False,
 flags.DEFINE_bool("decode", False,
                   "Set to True for interactive decoding.")
 flags.DEFINE_bool("generate", False, "Set to True for interactive generating.")
-flags.DEFINE_bool("test", True, "Set to True for interactive generating.")
+flags.DEFINE_bool("test", False, "Set to True for interactive generating.")
 
 FLAGS = flags.FLAGS
 
@@ -290,7 +290,7 @@ class SmallConfig(object):
     learning_rate = 1.0
     max_grad_norm = 5
     num_layers = 2
-    num_steps = 60
+    num_steps = 400
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13

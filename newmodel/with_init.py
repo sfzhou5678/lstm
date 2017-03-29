@@ -81,7 +81,7 @@ flags.DEFINE_bool("use_fp16", False,
 flags.DEFINE_bool("decode", False,
                   "Set to True for interactive decoding.")
 flags.DEFINE_bool("generate", False, "Set to True for interactive generating.")
-flags.DEFINE_bool("test", True, "Set to True for interactive generating.")
+flags.DEFINE_bool("test", False, "Set to True for interactive generating.")
 
 FLAGS = flags.FLAGS
 
@@ -307,7 +307,7 @@ class SmallConfig(object):
     learning_rate = 1.0
     max_grad_norm = 5
     num_layers = 2
-    num_steps = 60
+    num_steps = 400
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
@@ -483,10 +483,18 @@ def train():
     config = get_config()
 
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
+    id_to_word = data_reader.reverseDic(word_to_id)
+    import json
+    with open("../data/word_to_id.txt",'w') as wf:
+        wf.write(json.dumps(word_to_id))
+    with open("../data/id_to_word.txt",'w') as wf:
+        wf.write(json.dumps(id_to_word))
+    print("记录成功")
+
     # todo raw_data还应包含weights
     raw_data = data_reader.raw_data(FLAGS.data_path, word_to_id, config.num_steps)
     train_data, test_data, voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
-    id_to_word = data_reader.reverseDic(word_to_id)
+
 
     config = get_config()
     global num_steps
