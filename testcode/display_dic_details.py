@@ -40,19 +40,19 @@ def display_detail(filepath):
         print(hit_sum)
         print(hit_sum/total_tokens)
 
-        influence_dic=sorted(influence_dic.items(), key=lambda x:x[1],reverse=True)
-        sum=0
-        for (k,v) in influence_dic:
-            print('%s  %d'%(id_to_word[k],v))
-            sum+=v
-            if sum>int(0.9*(total_tokens-hit_sum)):
-                break
-        # print(influence_dic)
+        # influence_dic=sorted(influence_dic.items(), key=lambda x:x[1],reverse=True)
+        # sum=0
+        # for (k,v) in influence_dic:
+        #     print('%s  %d'%(id_to_word[k],v))
+        #     sum+=v
+        #     if sum>int(0.9*(total_tokens-hit_sum)):
+        #         break
+        # # print(influence_dic)
 
 filePath=r'../data/testres/total_res_dic.txt'
 
-# print("============display total===================")
-# display_detail(filePath)
+print("============display total===================")
+display_detail(filePath)
 
 nt_filepath=r'../data/testres/nonterminal_res_dic.txt'
 t_filepath=r'../data/testres/terminal_res_dic.txt'
@@ -60,5 +60,5 @@ t_filepath=r'../data/testres/terminal_res_dic.txt'
 print("============display nt===================")
 display_detail(nt_filepath)
 
-# print("============display t===================")
-# display_detail(t_filepath)
+print("============display t===================")
+display_detail(t_filepath)

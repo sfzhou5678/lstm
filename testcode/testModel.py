@@ -1,6 +1,6 @@
 
 # 这里决定生成哪个模型的测试 ：  from 模型名字 import *
-from newmodel.basic_ptb import *
+from newmodel.with_init import *
 from tools import data_reader
 import json
 
@@ -81,7 +81,7 @@ def SaveTestRes():
 
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
 
-    raw_data = data_reader.raw_data(FLAGS.data_path, word_to_id, config.num_steps)
+    raw_data = data_reader.raw_data(max_data_row=config.max_data_row,data_path=FLAGS.data_path, word_to_id=word_to_id, max_length=config.num_steps)
     train_data, test_data,voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
     id_to_word = data_reader.reverseDic(word_to_id)
 

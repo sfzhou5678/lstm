@@ -52,10 +52,11 @@ def _read_words(filename):
         return f.read().decode('utf-8').replace("\r\n", " ENDMARKER ").split(' ')
 
 
-def _file_to_word_ids(filename, word_to_id, max_length=None):
+def _file_to_word_ids(filename, word_to_id, max_length=None, max_data_row=None):
     word_ids = []
     with open(filename, 'r') as f:
         lines = f.readlines()
+        count =0
         for line in lines:
             line = line.strip()
 
@@ -71,15 +72,18 @@ def _file_to_word_ids(filename, word_to_id, max_length=None):
             if max_length:
                 for i in range(max_length - len(words)-1):
                     word_ids.append(word_to_id['PAD'])
+            count +=1
+            if max_data_row and count>max_data_row:
+                break
     return word_ids
 
 
-def raw_data(data_path=None, word_to_id=None, max_length=None):
+def raw_data(max_data_row,data_path=None, word_to_id=None, max_length=None):
     train_path = os.path.join(data_path, "train.txt")
     test_path = os.path.join(data_path, "test.txt")
 
     word_to_id = word_to_id
-    train_data= _file_to_word_ids(train_path, word_to_id, max_length)
+    train_data= _file_to_word_ids(train_path, word_to_id, max_length, max_data_row=max_data_row)
     test_data= _file_to_word_ids(test_path, word_to_id, max_length)
 
     vocabulary_size = len(word_to_id)

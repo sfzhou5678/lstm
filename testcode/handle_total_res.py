@@ -85,14 +85,18 @@ with open(res_path, 'r') as f:
     print(total_dic)
     print(hit_dic)
     print(acc_dic)
+    print("")
 
     print(t_total_dic)
     print(t_hit_dic)
     print(t_acc_dic)
+    print("")
 
     print(nt_total_dic)
     print(nt_hit_dic)
     print(nt_acc_dic)
+
+
     write_dic_res(r'../data/testres/total_res_dic.txt',total_dic,hit_dic,acc_dic)
     write_dic_res(r'../data/testres/terminal_res_dic.txt',t_total_dic,t_hit_dic,t_acc_dic)
     write_dic_res(r'../data/testres/nonterminal_res_dic.txt',nt_total_dic,nt_hit_dic,nt_acc_dic)

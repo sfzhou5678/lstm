@@ -307,7 +307,8 @@ class SmallConfig(object):
     learning_rate = 1.0
     max_grad_norm = 5
     num_layers = 2
-    num_steps = 400
+    max_data_row=1000
+    num_steps = 200
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
@@ -492,7 +493,7 @@ def train():
     print("记录成功")
 
     # todo raw_data还应包含weights
-    raw_data = data_reader.raw_data(FLAGS.data_path, word_to_id, config.num_steps)
+    raw_data = data_reader.raw_data(max_data_row=config.max_data_row,data_path=FLAGS.data_path, word_to_id=word_to_id, max_length=config.num_steps)
     train_data, test_data, voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
 
 
@@ -648,7 +649,7 @@ def test(type,filename):
 
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
     # todo raw_data还应包含weights
-    raw_data = data_reader.raw_data(FLAGS.data_path, word_to_id, config.num_steps)
+    raw_data = data_reader.raw_data(max_data_row=config.max_data_row,data_path=FLAGS.data_path, word_to_id=word_to_id, max_length=config.num_steps)
     train_data, test_data,voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
     id_to_word = data_reader.reverseDic(word_to_id)
 

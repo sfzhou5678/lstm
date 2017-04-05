@@ -81,7 +81,7 @@ flags.DEFINE_bool("use_fp16", False,
 flags.DEFINE_bool("decode", False,
                   "Set to True for interactive decoding.")
 flags.DEFINE_bool("generate", False, "Set to True for interactive generating.")
-flags.DEFINE_bool("test", True, "Set to True for interactive generating.")
+flags.DEFINE_bool("test", False, "Set to True for interactive generating.")
 
 FLAGS = flags.FLAGS
 
@@ -299,14 +299,16 @@ class SmallConfig(object):
     learning_rate = 1.0
     max_grad_norm = 5
     num_layers = 2
-    num_steps = 400
+    max_data_row=None
+    num_steps = 200
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
-    keep_prob = 1.0
+    keep_prob = 0.5
     lr_decay = 0.5
     batch_size = 1
     vocab_size = 5000
+
 
 
 class MediumConfig(object):
@@ -476,7 +478,7 @@ def train():
 
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
     # todo raw_data还应包含weights
-    raw_data = data_reader.raw_data(FLAGS.data_path, word_to_id, config.num_steps)
+    raw_data = data_reader.raw_data(max_data_row=config.max_data_row,data_path=FLAGS.data_path, word_to_id=word_to_id, max_length=config.num_steps)
     train_data, test_data, voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
     id_to_word = data_reader.reverseDic(word_to_id)
 
