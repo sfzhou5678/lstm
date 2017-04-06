@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/npi-lstm.iml" filepath="$PROJECT_DIR$/.idea/npi-lstm.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/lstm.iml" filepath="$PROJECT_DIR$/.idea/lstm.iml" />
+      <module fileurl="file://D:\MyProjectsRepertory\Python_project\lstm\.idea\npi-lstm.iml" filepath="D:\MyProjectsRepertory\Python_project\lstm\.idea\npi-lstm.iml" />
     </modules>
   </component>
 </project>

@@ -64,7 +64,7 @@ import tensorflow as tf
 from tools import Stack
 
 from tools import data_reader
-from tools.generate_test_data import is_nonterminal,is_terminal,stop_words
+from tools.generate_test_data import is_nonterminal, is_terminal, stop_words
 
 flags = tf.flags
 logging = tf.logging
@@ -189,8 +189,28 @@ class PTBModel(object):
 
             return state[0][0], state[0][1], state[1][0], state[1][1]
 
-        def func_pop():
+        def func_pop(state, time_step):
+            """
+            当self._input_data[0][time_step]=右括号时，先让他学完右括号然后再pop，保证}不会出现在上层结构中
+            :param state: 
+            :param time_step: 
+            :return: 
+            """
+            (cell_output, state) = cell(inputs[:, time_step, :], state)
+            outputs.append(cell_output)
+
             state = self.state_stack.pop()
+            return state[0][0], state[0][1], state[1][0], state[1][1]
+
+        def func_update(state, time_step):
+            """
+            默认的既不是'{'也不是'}'时的最普通的更新state和output的函数
+            :param state: 
+            :return: 
+            """
+            (cell_output, state) = cell(inputs[:, time_step, :], state)
+            outputs.append(cell_output)
+
             return state[0][0], state[0][1], state[1][0], state[1][1]
 
         def func_default(state):
@@ -230,14 +250,12 @@ class PTBModel(object):
 
                 new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
                                     lambda: func_push(state, time_step), lambda: func_default(state))
-                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(),
-                                    lambda: func_default(
-                                        ((new_state[0], new_state[1]), (new_state[2], new_state[3])))
-                                    )
+                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK),
+                                    lambda: func_pop(((new_state[0], new_state[1]), (new_state[2], new_state[3])),
+                                                     time_step),
+                                    lambda: func_update(((new_state[0], new_state[1]), (new_state[2], new_state[3])),
+                                                        time_step))
                 state = ((new_state[0], new_state[1]), (new_state[2], new_state[3]))
-
-                (cell_output, state) = cell(inputs[:, time_step, :], state)
-                outputs.append(cell_output)
 
         output = tf.reshape(tf.concat(1, outputs), [-1, size])
         softmax_w = tf.get_variable(
@@ -307,8 +325,8 @@ class SmallConfig(object):
     learning_rate = 1.0
     max_grad_norm = 5
     num_layers = 2
-    max_data_row=1000
-    num_steps = 200
+    max_data_row = 1000
+    num_steps = 60
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
@@ -486,16 +504,16 @@ def train():
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
     id_to_word = data_reader.reverseDic(word_to_id)
     import json
-    with open("../data/word_to_id.txt",'w') as wf:
+    with open("../data/word_to_id.txt", 'w') as wf:
         wf.write(json.dumps(word_to_id))
-    with open("../data/id_to_word.txt",'w') as wf:
+    with open("../data/id_to_word.txt", 'w') as wf:
         wf.write(json.dumps(id_to_word))
     print("记录成功")
 
     # todo raw_data还应包含weights
-    raw_data = data_reader.raw_data(max_data_row=config.max_data_row,data_path=FLAGS.data_path, word_to_id=word_to_id, max_length=config.num_steps)
+    raw_data = data_reader.raw_data(max_data_row=config.max_data_row, data_path=FLAGS.data_path, word_to_id=word_to_id,
+                                    max_length=config.num_steps)
     train_data, test_data, voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
-
 
     config = get_config()
     global num_steps
@@ -640,7 +658,8 @@ def decode():
                 else:
                     break
 
-def test(type,filename):
+
+def test(type, filename):
     # wfname='data/'+type+'.txt'
     # wf=open(wfname,'w')
     if not FLAGS.data_path:
@@ -649,38 +668,39 @@ def test(type,filename):
 
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
     # todo raw_data还应包含weights
-    raw_data = data_reader.raw_data(max_data_row=config.max_data_row,data_path=FLAGS.data_path, word_to_id=word_to_id, max_length=config.num_steps)
-    train_data, test_data,voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
+    raw_data = data_reader.raw_data(max_data_row=config.max_data_row, data_path=FLAGS.data_path, word_to_id=word_to_id,
+                                    max_length=config.num_steps)
+    train_data, test_data, voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
     id_to_word = data_reader.reverseDic(word_to_id)
 
     config = get_config()
     global num_steps
-    num_steps = config.num_steps-1
-    SUM=0
-    correct_tok=0
+    num_steps = config.num_steps - 1
+    SUM = 0
+    correct_tok = 0
 
-    f=open(filename)
-    data=f.readlines()
+    f = open(filename)
+    data = f.readlines()
     for i in range(len(data)):
         try:
-            SUM+=1
-            code=data[i].strip('\n').split(' ')
+            SUM += 1
+            code = data[i].strip('\n').split(' ')
             # print(data)
-            testInput=code[0:len(code)-1]
-            testTarget=code[-1]
+            testInput = code[0:len(code) - 1]
+            testTarget = code[-1]
             if testTarget not in word_to_id:
-                testTarget='UNK'
+                testTarget = 'UNK'
             for j in range(len(testInput)):
                 if testInput[j] not in word_to_id:
-                    testInput[j]=word_to_id['UNK']
+                    testInput[j] = word_to_id['UNK']
                 else:
-                    testInput[j]=word_to_id[testInput[j]]
+                    testInput[j] = word_to_id[testInput[j]]
 
             with tf.Graph().as_default():
                 initializer = tf.random_uniform_initializer(-config.init_scale,
                                                             config.init_scale)
                 with tf.name_scope("Train"):
-                    decode_input = PTBInput(config=config, data=testInput, name="TrainInput",isDecode=True)
+                    decode_input = PTBInput(config=config, data=testInput, name="TrainInput", isDecode=True)
                     with tf.variable_scope("Model", reuse=None, initializer=initializer):
                         decode_model = PTBModel(is_training=True, config=config, input_=decode_input,
                                                 START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
@@ -694,53 +714,54 @@ def test(type,filename):
 
                 sv = tf.train.Supervisor(logdir=FLAGS.save_path)
                 with sv.managed_session() as session:
-                    output=run_epoch(session,decode_model,id_to_word,end_id=end_id,isDecode=True)
+                    output = run_epoch(session, decode_model, id_to_word, end_id=end_id, isDecode=True)
                     tmp = list(output[-1])
 
-                    #top10
-                    predOutput=[]
-                    count=0
-                    while count<10:
-                        index=tmp.index(max(tmp))
-                        #todo fix me
-                        if index==PAD_MARK or id_to_word[index] in stop_words:
-                            tmp[index]=-100
+                    # top10
+                    predOutput = []
+                    count = 0
+                    while count < 10:
+                        index = tmp.index(max(tmp))
+                        # todo fix me
+                        if index == PAD_MARK or id_to_word[index] in stop_words:
+                            tmp[index] = -100
                             continue
                         predOutput.append(id_to_word[index])
-                        count+=1
-                        tmp[index]=-100
-                    # sv.saver.save(session, FLAGS.save_path, global_step=sv.global_step)
+                        count += 1
+                        tmp[index] = -100
+                        # sv.saver.save(session, FLAGS.save_path, global_step=sv.global_step)
 
-                if type=='T':
+                if type == 'T':
                     for i in range(len(predOutput)):
                         if is_terminal(predOutput[i]):
-                            print("%s,%s"%(predOutput[i],testTarget))
-                            if(predOutput[i]==testTarget):
-                                correct_tok+=1
+                            print("%s,%s" % (predOutput[i], testTarget))
+                            if (predOutput[i] == testTarget):
+                                correct_tok += 1
                             break
                 else:
                     for i in range(len(predOutput)):
                         if is_nonterminal(predOutput[i]):
-                            print("%s,%s"%(predOutput[i],testTarget))
-                            if(predOutput[i]==testTarget):
-                                correct_tok+=1
+                            print("%s,%s" % (predOutput[i], testTarget))
+                            if (predOutput[i] == testTarget):
+                                correct_tok += 1
                             break
-            print(' %d %d'%(correct_tok,SUM))
-            acc=correct_tok*1.0/SUM
-            print("Accuracy : %.3f"%acc)
+            print(' %d %d' % (correct_tok, SUM))
+            acc = correct_tok * 1.0 / SUM
+            print("Accuracy : %.3f" % acc)
         except:
             pass
-    acc=correct_tok*1.0/SUM
-    print("Final Accuracy : %.3f"%acc)
+    acc = correct_tok * 1.0 / SUM
+    print("Final Accuracy : %.3f" % acc)
 
 
 def main(_):
     if FLAGS.decode:
         decode()
     if FLAGS.test:
-        test('NT',r'../data/train_nonterminal-60-60.txt')
+        test('NT', r'../data/train_nonterminal-60-60.txt')
     else:
         train()
+
 
 if __name__ == "__main__":
     tf.app.run()
