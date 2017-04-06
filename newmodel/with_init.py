@@ -197,10 +197,9 @@ class PTBModel(object):
             :return: 
             """
             (cell_output, state) = cell(inputs[:, time_step, :], state)
-            outputs.append(cell_output)
 
             state = self.state_stack.pop()
-            return state[0][0], state[0][1], state[1][0], state[1][1]
+            return state[0][0], state[0][1], state[1][0], state[1][1], cell_output
 
         def func_update(state, time_step):
             """
@@ -209,9 +208,8 @@ class PTBModel(object):
             :return: 
             """
             (cell_output, state) = cell(inputs[:, time_step, :], state)
-            outputs.append(cell_output)
 
-            return state[0][0], state[0][1], state[1][0], state[1][1]
+            return state[0][0], state[0][1], state[1][0], state[1][1], cell_output
 
         def func_default(state):
             return state[0][0], state[0][1], state[1][0], state[1][1]
@@ -250,12 +248,17 @@ class PTBModel(object):
 
                 new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
                                     lambda: func_push(state, time_step), lambda: func_default(state))
-                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK),
-                                    lambda: func_pop(((new_state[0], new_state[1]), (new_state[2], new_state[3])),
-                                                     time_step),
-                                    lambda: func_update(((new_state[0], new_state[1]), (new_state[2], new_state[3])),
-                                                        time_step))
+                new_state[0], new_state[1], new_state[2], new_state[3], cell_output = tf.cond(
+                    tf.equal(self._input_data[0][time_step], END_MARK),
+                    lambda: func_pop(((new_state[0], new_state[1]), (new_state[2], new_state[3])),
+                                     time_step),
+                    lambda: func_update(((new_state[0], new_state[1]), (new_state[2], new_state[3])),
+                                        time_step))
+                outputs.append(cell_output)
+
                 state = ((new_state[0], new_state[1]), (new_state[2], new_state[3]))
+                # TODO 修改栈 修改成用step+1判断{或} 修改func的返回值，要带上steps
+                # (_, state) = cell(inputs[:, tf.constant(5), :], state)
 
         output = tf.reshape(tf.concat(1, outputs), [-1, size])
         softmax_w = tf.get_variable(
