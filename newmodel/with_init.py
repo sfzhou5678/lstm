@@ -183,6 +183,8 @@ class PTBModel(object):
             self.state_stack.push(state)
 
             # 下面几行是清零专用的代码
+            # 状态清零后，先学习time_step-1也就是For 或 Assign之类的语句。
+            # [然后再下一个if中将继续学习For{  或 Assign{ 这种形式的语句]
             state = self._initial_state
             (cell_output, state) = cell(inputs[:, time_step - 1, :], state)
             tf.get_variable_scope().reuse_variables()
@@ -230,10 +232,9 @@ class PTBModel(object):
 
                 new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
                                     lambda: func_push(state, time_step), lambda: func_default(state))
-                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(),
-                                    lambda: func_default(
-                                        ((new_state[0], new_state[1]), (new_state[2], new_state[3])))
-                                    )
+                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK),
+                                    lambda: func_pop(),
+                                    lambda: func_default(((new_state[0], new_state[1]), (new_state[2], new_state[3]))))
                 state = ((new_state[0], new_state[1]), (new_state[2], new_state[3]))
 
                 (cell_output, state) = cell(inputs[:, time_step, :], state)
@@ -308,7 +309,7 @@ class SmallConfig(object):
     max_grad_norm = 5
     num_layers = 2
     max_data_row=1000
-    num_steps = 200
+    num_steps = 60
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
