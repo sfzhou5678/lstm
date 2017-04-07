@@ -12,7 +12,7 @@ def new_run_epoch(session, model, eval_op=None, verbose=False, id_to_word=None,e
     costs = 0.0
     iters = 0
     state = session.run(model.initial_state)
-
+    
     fetches = {
         "cost": model.cost,
         "final_state": model.final_state,

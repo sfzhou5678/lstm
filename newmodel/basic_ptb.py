@@ -159,74 +159,9 @@ class PTBModel(object):
         outputs = []
         state = self._initial_state
 
-        # def func_push(state,batch):
-        #     self.state_stack.push(state)
-        #     return state[0][0][batch], state[0][1][batch], state[1][0][batch], state[1][1][batch]
-        #
-        # def func_pop(batch):
-        #     state = self.state_stack.pop()
-        #     return state[0][0][batch], state[0][1][batch], state[1][0][batch], state[1][1][batch]
-        #
-        # def func_default(state,batch):
-        #     return state[0][0][batch], state[0][1][batch], state[1][0][batch], state[1][1][batch]
-
-        def func_push(state, time_step):
-            """
-            # 如果要状态清零，那么首先在stack中push当前的状态，然后把当前状态初始化，同时调用time_step-1的inputdata来获得状态前缀
-            # 比如For{...} .. Assign{ a b } 那么遇到Assign的'{'时让初始化状态为Assign
-            # 因为{不可能出现在开头(即index=0)，所以不必担心time_step-1会越界
-
-            :param state:
-            :param time_step:
-            :return:
-            """
-            self.state_stack.push(state)
-            return state[0][0], state[0][1], state[1][0], state[1][1]
-
-        def func_pop():
-            state = self.state_stack.pop()
-            return state[0][0], state[0][1], state[1][0], state[1][1]
-
-        def func_default(state):
-            return state[0][0], state[0][1], state[1][0], state[1][1]
-
         with tf.variable_scope("RNN"):
             for time_step in range(num_steps):
                 if time_step > 0: tf.get_variable_scope().reuse_variables()
-
-                # NOTE: tf.case()存在bug 无法使用
-                # tf.case({tf.equal(self._input_data[0][time_step], START_MARK): lambda :func_push(state),
-                #          tf.equal(self._input_data[0][time_step], END_MARK): lambda :func_pop()},
-                #         default=lambda :func_default(state),
-                #         exclusive=False)
-
-                """
-                下面的代码是做多batch并行运算的尝试
-                考虑到单batch已经极大占用内存容量，而且多batch存在bug
-                所以暂时只使用单batch进行计算
-                """
-                # state1=[]
-                # state2=[]
-                # state3=[]
-                # state4=[]
-                # for batch in range(batch_size):
-                #     s1,s2,s3,s4=tf.cond(tf.equal(self._input_data[batch][time_step], START_MARK), lambda: func_push(state,batch),lambda: func_default(state,batch))
-                #     s1,s2,s3,s4=tf.cond(tf.equal(self._input_data[batch][time_step], END_MARK), lambda: func_pop(batch),lambda :func_default(state,batch))
-                #     state1.append(s1)
-                #     state2.append(s2)
-                #     state3.append(s3)
-                #     state4.append(s4)
-                # ss1=tf.reshape(state1,[batch_size,size])
-                # ss2=tf.reshape(state2,[batch_size,size])
-                # ss3=tf.reshape(state3,[batch_size,size])
-                # ss4=tf.reshape(state4,[batch_size,size])
-                # state=((ss1,ss2),(ss3,ss4))
-
-                # new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
-                #                     lambda: func_push(state, time_step), lambda: func_default(state))
-                # new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(),
-                #                     lambda: func_default(state))
-                # state = ((new_state[0], new_state[1]), (new_state[2], new_state[3]))
 
                 (cell_output, state) = cell(inputs[:, time_step, :], state)
                 outputs.append(cell_output)
@@ -298,13 +233,13 @@ class SmallConfig(object):
     init_scale = 0.1
     learning_rate = 1.0
     max_grad_norm = 5
-    num_layers = 2
+    num_layers = 1
     max_data_row=None
     num_steps = 200
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
-    keep_prob = 0.5
+    keep_prob = 1
     lr_decay = 0.5
     batch_size = 1
     vocab_size = 5000

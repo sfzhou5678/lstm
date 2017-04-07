@@ -230,7 +230,7 @@ class PTBModel(object):
 
                 new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
                                     lambda: func_push(state, time_step), lambda: func_default(state))
-                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(),
+                new_state = tf.cond(tf.equal(self._input_data[0][time_step-1], END_MARK), lambda: func_pop(),
                                     lambda: func_default(
                                         ((new_state[0], new_state[1]), (new_state[2], new_state[3])))
                                     )
@@ -307,7 +307,7 @@ class SmallConfig(object):
     learning_rate = 1.0
     max_grad_norm = 5
     num_layers = 2
-    max_data_row=1000
+    max_data_row=None
     num_steps = 200
     hidden_size = 200
     max_epoch = 4
