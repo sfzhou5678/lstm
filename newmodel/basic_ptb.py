@@ -72,9 +72,9 @@ logging = tf.logging
 flags.DEFINE_string(
     "model", "small",
     "A type of model. Possible options are: small, medium, large.")
-flags.DEFINE_string("data_path", '../data/',
+flags.DEFINE_string("data_path", '../data',
                     "Where the training/test data is stored.")
-flags.DEFINE_string("save_path", '../data/res/',
+flags.DEFINE_string("save_path", '../data/res400ptb/',
                     "Model output directory.")
 flags.DEFINE_bool("use_fp16", False,
                   "Train using 16-bit floats instead of 32bit floats")
@@ -300,7 +300,7 @@ class SmallConfig(object):
     max_grad_norm = 5
     num_layers = 2
     max_data_row=None
-    num_steps = 200
+    num_steps = 100
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13

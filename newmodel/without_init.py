@@ -74,7 +74,7 @@ flags.DEFINE_string(
     "A type of model. Possible options are: small, medium, large.")
 flags.DEFINE_string("data_path", '../data/',
                     "Where the training/test data is stored.")
-flags.DEFINE_string("save_path", '../data/res/',
+flags.DEFINE_string("save_path", '../data/res400noinit/',
                     "Model output directory.")
 flags.DEFINE_bool("use_fp16", False,
                   "Train using 16-bit floats instead of 32bit floats")
@@ -215,7 +215,7 @@ class PTBModel(object):
 
                 new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
                                     lambda: func_push(state, time_step), lambda: func_default(state))
-                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(),
+                new_state = tf.cond(tf.equal(self._input_data[0][time_step-1], END_MARK), lambda: func_pop(),
                                     lambda: func_default(state))
                 state = ((new_state[0], new_state[1]), (new_state[2], new_state[3]))
 

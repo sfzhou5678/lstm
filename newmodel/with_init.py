@@ -74,7 +74,7 @@ flags.DEFINE_string(
     "A type of model. Possible options are: small, medium, large.")
 flags.DEFINE_string("data_path", '../data/',
                     "Where the training/test data is stored.")
-flags.DEFINE_string("save_path", '../data/res/',
+flags.DEFINE_string("save_path", '../data/resinit100with1000row/',
                     "Model output directory.")
 flags.DEFINE_bool("use_fp16", False,
                   "Train using 16-bit floats instead of 32bit floats")
@@ -125,6 +125,7 @@ class PTBModel(object):
         # Slightly better results can be obtained with forget gate biases
         # initialized to 1 but the hyperparameters of the model would need to be
         # different than reported in the paper.
+        # lstm_cell=tf.nn.rnn_cell.BasicRNNCell(size, forget_bias=0.0, state_is_tuple=True)
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(size, forget_bias=0.0, state_is_tuple=True)
         if is_training and config.keep_prob < 1:
             lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
@@ -230,7 +231,7 @@ class PTBModel(object):
 
                 new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
                                     lambda: func_push(state, time_step), lambda: func_default(state))
-                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(),
+                new_state = tf.cond(tf.equal(self._input_data[0][time_step-1], END_MARK), lambda: func_pop(),
                                     lambda: func_default(
                                         ((new_state[0], new_state[1]), (new_state[2], new_state[3])))
                                     )
@@ -308,7 +309,7 @@ class SmallConfig(object):
     max_grad_norm = 5
     num_layers = 2
     max_data_row=1000
-    num_steps = 200
+    num_steps = 100
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
