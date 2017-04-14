@@ -22,7 +22,7 @@ def write_dic_res(path,total_dic,hit_dic,acc_dic):
         wf.write(json.dumps(hit_dic)+'\n')
         wf.write(json.dumps(acc_dic)+'\n')
 
-res_path = r'../data/testres/testres.txt'
+res_path = r'../data/newres/60with1000row/noinit.txt'
 
 stop_words_tokens=generate_test_data.stop_words
 terminal_set_tokens=generate_test_data.terminal_set

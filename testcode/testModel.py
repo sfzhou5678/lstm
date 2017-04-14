@@ -1,6 +1,6 @@
-
+# -*- coding: utf-8 -*-
 # 这里决定生成哪个模型的测试 ：  from 模型名字 import *
-from newmodel.with_init import *
+from newmodel.basic_ptb import *
 from tools import data_reader
 import json
 
@@ -103,7 +103,7 @@ def SaveTestRes():
 
         sv = tf.train.Supervisor(logdir=FLAGS.save_path)
         with sv.managed_session() as session:
-            test_perplexity = new_run_epoch(session, mtest, id_to_word=id_to_word,end_id=end_id,save_path='../data/testres.txt')
+            test_perplexity = new_run_epoch(session, mtest, id_to_word=id_to_word,end_id=end_id,save_path='../data/twolayer/testres/100with1000row/ptb.txt')
             print("Test Perplexity: %.3f" % test_perplexity)
 
 SaveTestRes()
