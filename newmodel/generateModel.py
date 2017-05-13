@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #这里确定哪个模型
 from __future__ import print_function
-from newmodel.basic_ptb import *
+from newmodel.without_init import *
 from tools import data_reader
 
 def generate(length):
@@ -52,12 +52,18 @@ def generate(length):
                 # print(output)
                 tmp = list(output[-1])
                 index=tmp.index(max(tmp))
+                if id_to_word[index]=='ENDMARKER':
+                    break
+                if id_to_word[index]=='UNK':
+                    tmp[index]=-100
+                    index=tmp.index(max(tmp))
                 token.append(index)
                 res.append(id_to_word[index])
                 count+=1
 
-    for i in range(length):
+    for i in range(len(res)):
         print(res[i],end=' ')
+    print('\n')
 
-
-generate(20)
+while True:
+    generate(20)

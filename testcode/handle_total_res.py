@@ -22,7 +22,7 @@ def write_dic_res(path,total_dic,hit_dic,acc_dic):
         wf.write(json.dumps(hit_dic)+'\n')
         wf.write(json.dumps(acc_dic)+'\n')
 
-res_path = r'../data/newres/60with1000row/noinit.txt'
+res_path = r'../data/oldres/400with1000row/ptb.txt'
 
 stop_words_tokens=generate_test_data.stop_words
 terminal_set_tokens=generate_test_data.terminal_set
@@ -46,7 +46,7 @@ t_total_dic={}
 t_hit_dic={}
 t_acc_dic={}
 
-topN=1
+topN=5
 with open(res_path, 'r') as f:
     while True:
         true_output_line = f.readline().strip()
@@ -54,7 +54,10 @@ with open(res_path, 'r') as f:
         pred_output_line = f.readline().strip()
         true_output = json.loads(true_output_line)
         pred_output = json.loads(pred_output_line)
-
+        # i = 60
+        # j= 100
+        # while i<j:
+        #     i+=1
         for i in range(len(true_output)):
             target_id = true_output[i]
             token=id_to_word[str(target_id)]
@@ -76,6 +79,7 @@ with open(res_path, 'r') as f:
             dic_add_item(total_dic,target_id,1)
             if(target_id in [item for item in pred_output[i][:topN]]):
                 dic_add_item(hit_dic,target_id,1)
+
 
     calculate_acc(total_dic,hit_dic,acc_dic)
     calculate_acc(t_total_dic,t_hit_dic,t_acc_dic)

@@ -215,7 +215,7 @@ class PTBModel(object):
 
                 new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
                                     lambda: func_push(state, time_step), lambda: func_default(state))
-                new_state = tf.cond(tf.equal(self._input_data[0][time_step-1], END_MARK), lambda: func_pop(),
+                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(),
                                     lambda: func_default(state))
                 state = ((new_state[0], new_state[1]), (new_state[2], new_state[3]))
 
