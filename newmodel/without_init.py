@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2015 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -90,7 +91,7 @@ def data_type():
     return tf.float16 if FLAGS.use_fp16 else tf.float32
 
 
-class PTBInput(object):
+class NoInitInput(object):
     """The input data."""
 
     def __init__(self, config, data, name=None, isDecode=False):
@@ -107,11 +108,11 @@ class PTBInput(object):
             self.batch_size = batch_size = config.batch_size
             self.num_steps = num_steps = config.num_steps
             self.epoch_size = ((len(data) // batch_size) - 1) // num_steps
-            self.input_data, self.targets = data_reader.ptb_producer(
+            self.input_data, self.targets = data_reader.data_producer(
                 data, batch_size, num_steps, name=name)
 
 
-class PTBModel(object):
+class NoInitModel(object):
     """The PTB model."""
 
     def __init__(self, is_training, config, input_, START_MARK, END_MARK, PAD_MARK):
@@ -490,23 +491,23 @@ def train():
                                                     config.init_scale)
 
         with tf.name_scope("Train"):
-            train_input = PTBInput(config=config, data=train_data, name="TrainInput")
+            train_input = NoInitInput(config=config, data=train_data, name="TrainInput")
             with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                m = PTBModel(is_training=True, config=config, input_=train_input,
+                m = NoInitModel(is_training=True, config=config, input_=train_input,
                              START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
             tf.summary.scalar("Training Loss", m.cost)
             tf.summary.scalar("Learning Rate", m.lr)
 
         # with tf.name_scope("Valid"):
-        #     valid_input = PTBInput(config=config, data=valid_data, name="ValidInput")
+        #     valid_input = NoInitInput(config=config, data=valid_data, name="ValidInput")
         #     with tf.variable_scope("Model", reuse=True, initializer=initializer):
-        #         mvalid = PTBModel(is_training=False, config=config, input_=valid_input)
+        #         mvalid = NoInitModel(is_training=False, config=config, input_=valid_input)
         #     tf.scalar_summary("Validation Loss", mvalid.cost)
 
         with tf.name_scope("Test"):
-            test_input = PTBInput(config=eval_config, data=test_data, name="TestInput")
+            test_input = NoInitInput(config=eval_config, data=test_data, name="TestInput")
             with tf.variable_scope("Model", reuse=True, initializer=initializer):
-                mtest = PTBModel(is_training=False, config=eval_config, input_=test_input,
+                mtest = NoInitModel(is_training=False, config=eval_config, input_=test_input,
                                  START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
 
         sv = tf.train.Supervisor(logdir=FLAGS.save_path)
@@ -564,9 +565,9 @@ def decode():
             print('\n')
 
             with tf.name_scope("Train"):
-                decode_input = PTBInput(config=config, data=token, name="TrainInput", isDecode=True)
+                decode_input = NoInitInput(config=config, data=token, name="TrainInput", isDecode=True)
                 with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                    decode_model = PTBModel(is_training=True, config=config, input_=decode_input,
+                    decode_model = NoInitModel(is_training=True, config=config, input_=decode_input,
                                             START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
                 # tf.summary.scalar("Training Loss", m.cost)
                 # tf.summary.scalar("Learning Rate", m.lr)
@@ -655,9 +656,9 @@ def test(type,filename):
                 initializer = tf.random_uniform_initializer(-config.init_scale,
                                                             config.init_scale)
                 with tf.name_scope("Train"):
-                    decode_input = PTBInput(config=config, data=testInput, name="TrainInput",isDecode=True)
+                    decode_input = NoInitInput(config=config, data=testInput, name="TrainInput",isDecode=True)
                     with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                        decode_model = PTBModel(is_training=True, config=config, input_=decode_input,
+                        decode_model = NoInitModel(is_training=True, config=config, input_=decode_input,
                                                 START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
 
                         # ckpt = tf.train.get_checkpoint_state(FLAGS.save_path)

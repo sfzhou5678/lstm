@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2015 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -74,7 +75,7 @@ flags.DEFINE_string(
     "A type of model. Possible options are: small, medium, large.")
 flags.DEFINE_string("data_path", '../data',
                     "Where the training/test data is stored.")
-flags.DEFINE_string("save_path", '../data/res400ptb/',
+flags.DEFINE_string("save_path", '../data/60/',
                     "Model output directory.")
 flags.DEFINE_bool("use_fp16", False,
                   "Train using 16-bit floats instead of 32bit floats")
@@ -90,7 +91,7 @@ def data_type():
     return tf.float16 if FLAGS.use_fp16 else tf.float32
 
 
-class PTBInput(object):
+class LSTMInput(object):
     """The input data."""
 
     def __init__(self, config, data, name=None, isDecode=False):
@@ -107,11 +108,11 @@ class PTBInput(object):
             self.batch_size = batch_size = config.batch_size
             self.num_steps = num_steps = config.num_steps
             self.epoch_size = ((len(data) // batch_size) - 1) // num_steps
-            self.input_data, self.targets = data_reader.ptb_producer(
+            self.input_data, self.targets = data_reader.data_producer(
                 data, batch_size, num_steps, name=name)
 
 
-class PTBModel(object):
+class LSTMModel(object):
     """The PTB model."""
 
     def __init__(self, is_training, config, input_, START_MARK, END_MARK, PAD_MARK):
@@ -300,7 +301,7 @@ class SmallConfig(object):
     max_grad_norm = 5
     num_layers = 2
     max_data_row=None
-    num_steps = 100
+    num_steps = 60
     hidden_size = 200
     max_epoch = 4
     max_max_epoch = 13
@@ -500,17 +501,17 @@ def train():
                                                     config.init_scale)
 
         with tf.name_scope("Train"):
-            train_input = PTBInput(config=config, data=train_data, name="TrainInput")
+            train_input = LSTMInput(config=config, data=train_data, name="TrainInput")
             with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                m = PTBModel(is_training=True, config=config, input_=train_input,
+                m = LSTMModel(is_training=True, config=config, input_=train_input,
                              START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
             tf.summary.scalar("Training Loss", m.cost)
             tf.summary.scalar("Learning Rate", m.lr)
 
         with tf.name_scope("Test"):
-            test_input = PTBInput(config=eval_config, data=test_data, name="TestInput")
+            test_input = LSTMInput(config=eval_config, data=test_data, name="TestInput")
             with tf.variable_scope("Model", reuse=True, initializer=initializer):
-                mtest = PTBModel(is_training=False, config=eval_config, input_=test_input,
+                mtest = LSTMModel(is_training=False, config=eval_config, input_=test_input,
                                  START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
 
         sv = tf.train.Supervisor(logdir=FLAGS.save_path)
@@ -537,7 +538,7 @@ def train():
 def decode():
     choice = ['1', '2', '3', '4', '5', 'q']
     if not FLAGS.data_path:
-        raise ValueError("Must set --data_path to PTB data directory")
+        raise ValueError("Must set --data_path to data directory")
     config = get_config()
 
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
@@ -568,9 +569,9 @@ def decode():
             print('\n')
 
             with tf.name_scope("Train"):
-                decode_input = PTBInput(config=config, data=token, name="TrainInput", isDecode=True)
+                decode_input = LSTMInput(config=config, data=token, name="TrainInput", isDecode=True)
                 with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                    decode_model = PTBModel(is_training=True, config=config, input_=decode_input,
+                    decode_model = LSTMModel(is_training=True, config=config, input_=decode_input,
                                             START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
                 # tf.summary.scalar("Training Loss", m.cost)
                 # tf.summary.scalar("Learning Rate", m.lr)
@@ -659,9 +660,9 @@ def test(type,filename):
                 initializer = tf.random_uniform_initializer(-config.init_scale,
                                                             config.init_scale)
                 with tf.name_scope("Train"):
-                    decode_input = PTBInput(config=config, data=testInput, name="TrainInput",isDecode=True)
+                    decode_input = LSTMInput(config=config, data=testInput, name="TrainInput",isDecode=True)
                     with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                        decode_model = PTBModel(is_training=True, config=config, input_=decode_input,
+                        decode_model = LSTMModel(is_training=True, config=config, input_=decode_input,
                                                 START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
 
                         # ckpt = tf.train.get_checkpoint_state(FLAGS.save_path)

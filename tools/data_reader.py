@@ -1,9 +1,10 @@
+# -*- coding: utf-8 -*-
 import tensorflow as tf
 import os
 import collections
 
 
-def ptb_producer(raw_data, batch_size, num_steps, name=None):
+def data_producer(raw_data, batch_size, num_steps, name=None):
     """Iterate on the raw PTB data.
 
     This chunks up raw_data into batches of examples and returns Tensors that
@@ -51,7 +52,7 @@ def _read_words(filename):
     with tf.gfile.GFile(filename, 'r') as f:
         return f.read().decode('utf-8').replace("\r\n", " ENDMARKER ").split(' ')
 
-
+# max_length——numsteps  max_data_row——使用训练数据行数
 def _file_to_word_ids(filename, word_to_id, max_length=None, max_data_row=None):
     word_ids = []
     with open(filename, 'r') as f:
@@ -121,8 +122,8 @@ def reverseDic(curDic):
     return newmaplist
 
 
-def weight_producer(weights):
-    q = tf.FIFOQueue(500000, 'float')
-    init = q.enqueue_many((weights,))
-    w = q.dequeue()
-    return init, w
+# def weight_producer(weights):
+#     q = tf.FIFOQueue(500000, 'float')
+#     init = q.enqueue_many((weights,))
+#     w = q.dequeue()
+#     return init, w

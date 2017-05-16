@@ -1,5 +1,5 @@
+# -*- coding: utf-8 -*-
 import json
-from collections import Counter
 from tools import generate_test_data
 
 

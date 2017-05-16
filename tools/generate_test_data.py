@@ -1,5 +1,4 @@
-# encoding:utf-8
-
+# -*- coding: utf-8 -*-
 
 stop_words={'{','}','NameConstant','PAD'}
 stop_terminal_set={'AsName','ModuleName','ClassName','FuncName','AsyncFuncName'}

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import json
 
 stop_words={'4999','0','1'}

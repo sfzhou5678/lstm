@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # 这里决定生成哪个模型的测试 ：  from 模型名字 import *
-from newmodel.basic_ptb import *
+from newmodel.basic_lstm import *
 from tools import data_reader
 import json
 
@@ -96,9 +96,9 @@ def SaveTestRes():
                                                     config.init_scale)
 
         with tf.name_scope("Test"):
-            test_input = PTBInput(config=eval_config, data=test_data, name="TestInput")
+            test_input = LSTMInput(config=eval_config, data=test_data, name="TestInput")
             with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                mtest = PTBModel(is_training=False, config=eval_config, input_=test_input,
+                mtest = LSTMModel(is_training=False, config=eval_config, input_=test_input,
                                  START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
 
         sv = tf.train.Supervisor(logdir=FLAGS.save_path)

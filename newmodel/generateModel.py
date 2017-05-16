@@ -32,9 +32,9 @@ def generate(length):
                                                         config.init_scale)
 
             with tf.name_scope("Train"):
-                decode_input = PTBInput(config=config, data=token, name="TrainInput",isDecode=True)
+                decode_input = NoInitInput(config=config, data=token, name="TrainInput",isDecode=True)
                 with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                    decode_model = PTBModel(is_training=False, config=config, input_=decode_input,
+                    decode_model = NoInitModel(is_training=False, config=config, input_=decode_input,
                                             START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
 
                 # ckpt = tf.train.get_checkpoint_state(FLAGS.save_path)
