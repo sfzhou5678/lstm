@@ -66,4 +66,4 @@ def generate(length):
     print('\n')
 
 while True:
-    generate(20)
+    generate(5)
