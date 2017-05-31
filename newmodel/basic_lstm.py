@@ -22,7 +22,7 @@ flags.DEFINE_string(
     "A type of model. Possible options are: small, medium, large.")
 flags.DEFINE_string("data_path", '../data',
                     "Where the training/test data is stored.")
-flags.DEFINE_string("save_path", '../data/60/',
+flags.DEFINE_string("save_path", '../data/resptb60/',
                     "Model output directory.")
 flags.DEFINE_bool("use_fp16", False,
                   "Train using 16-bit floats instead of 32bit floats")
@@ -81,7 +81,7 @@ class LSTMModel(object):
         cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * config.num_layers, state_is_tuple=True)
 
         self._initial_state = cell.zero_state(batch_size, data_type())
-        self.state_stack = Stack.Stack()
+        # self.state_stack = Stack.Stack()
 
         with tf.device("/cpu:0"):
             embedding = tf.get_variable(

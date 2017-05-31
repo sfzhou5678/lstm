@@ -25,7 +25,7 @@ flags.DEFINE_string("save_path", '../data/res400noinit/',
                     "Model output directory.")
 flags.DEFINE_bool("use_fp16", False,
                   "Train using 16-bit floats instead of 32bit floats")
-flags.DEFINE_bool("decode", False,
+flags.DEFINE_bool("decode", True,
                   "Set to True for interactive decoding.")
 flags.DEFINE_bool("generate", False, "Set to True for interactive generating.")
 flags.DEFINE_bool("test", False, "Set to True for interactive generating.")
@@ -485,7 +485,7 @@ def decode():
 
     word_to_id = data_reader.get_word_to_id(FLAGS.data_path)
     # todo raw_data还应包含weights
-    raw_data = data_reader.raw_data(FLAGS.data_path, word_to_id, config.num_steps)
+    raw_data = data_reader.raw_data(max_data_row=config.max_data_row,data_path=FLAGS.data_path, word_to_id=word_to_id, max_length=config.num_steps)
     train_data, test_data, voc_size, end_id, _, START_MARK, END_MARK, PAD_MARK = raw_data
     id_to_word = data_reader.reverseDic(word_to_id)
 
@@ -506,27 +506,24 @@ def decode():
         with tf.Graph().as_default():
             initializer = tf.random_uniform_initializer(-config.init_scale,
                                                         config.init_scale)
-            for i in range(len(token)):
-                print(id_to_word[token[i]], end=' ')
-            print('\n')
 
             with tf.name_scope("Train"):
-                decode_input = NoInitInput(config=config, data=token, name="TrainInput", isDecode=True)
+                decode_input = NoInitInput(config=config, data=token, name="TrainInput",isDecode=True)
                 with tf.variable_scope("Model", reuse=None, initializer=initializer):
-                    decode_model = NoInitModel(is_training=True, config=config, input_=decode_input,
-                                            START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
-                # tf.summary.scalar("Training Loss", m.cost)
-                # tf.summary.scalar("Learning Rate", m.lr)
+                    decode_model = NoInitModel(is_training=False, config=config, input_=decode_input,
+                                               START_MARK=START_MARK, END_MARK=END_MARK, PAD_MARK=PAD_MARK)
 
-                ckpt = tf.train.get_checkpoint_state(FLAGS.save_path)
-                if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
-                    print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-                    # model.saver.restore(session, ckpt.model_checkpoint_path)
-                else:
-                    print("Created model with fresh parameters.")
+                    # ckpt = tf.train.get_checkpoint_state(FLAGS.save_path)
+                    # if ckpt and tf.train.checkpoint_exists(ckpt.model_checkpoint_path):
+                    #     print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
+                    #     # model.saver.restore(session, ckpt.model_checkpoint_path)
+                    # else:
+                    #     print("Created model with fresh parameters.")
+            Config = tf.ConfigProto()
+            Config.gpu_options.allow_growth = True
             sv = tf.train.Supervisor(logdir=FLAGS.save_path)
-            with sv.managed_session() as session:
-                output = run_epoch(session, decode_model, 'decode', id_to_word, end_id=end_id, isDecode=True)
+            with sv.managed_session(config=Config) as session:
+                output=run_epoch(session,decode_model,id_to_word,end_id=end_id,isDecode=True)
                 # output = decode_model.step(session)
                 # print(output)
                 tmp = list(output[-1])

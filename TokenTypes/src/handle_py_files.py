@@ -4,7 +4,7 @@
 import os
 import hashlib
 
-from src import ast_to_type_with_name
+from TokenTypes.src import ast_to_type_with_name
 
 def is_py_file(path):
     if (path.split('.')[-1])=='py':
