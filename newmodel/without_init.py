@@ -21,11 +21,11 @@ flags.DEFINE_string(
     "A type of model. Possible options are: small, medium, large.")
 flags.DEFINE_string("data_path", '../data/',
                     "Where the training/test data is stored.")
-flags.DEFINE_string("save_path", '../data/res400noinit/',
+flags.DEFINE_string("save_path", '../data/testres60noinit/',
                     "Model output directory.")
 flags.DEFINE_bool("use_fp16", False,
                   "Train using 16-bit floats instead of 32bit floats")
-flags.DEFINE_bool("decode", True,
+flags.DEFINE_bool("decode", False,
                   "Set to True for interactive decoding.")
 flags.DEFINE_bool("generate", False, "Set to True for interactive generating.")
 flags.DEFINE_bool("test", False, "Set to True for interactive generating.")
@@ -72,12 +72,12 @@ class NoInitModel(object):
         # Slightly better results can be obtained with forget gate biases
         # initialized to 1 but the hyperparameters of the model would need to be
         # different than reported in the paper.
-        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(size, forget_bias=0.0, state_is_tuple=True)
+        lstm_cell = tf.contrib.rnn.BasicLSTMCell(size, forget_bias=0.0, state_is_tuple=True)
         if is_training and config.keep_prob < 1:
-            lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
+            lstm_cell = tf.contrib.rnn.DropoutWrapper(
                 lstm_cell, output_keep_prob=config.keep_prob)
         # cell=lstm_cell
-        cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * config.num_layers, state_is_tuple=True)
+        cell = tf.contrib.rnn.MultiRNNCell([lstm_cell] * config.num_layers, state_is_tuple=True)
 
         self._initial_state = cell.zero_state(batch_size, data_type())
         self.state_stack = Stack.Stack()
@@ -104,8 +104,7 @@ class NoInitModel(object):
         # inputs = tf.unstack(inputs, num=num_steps, axis=1)
         # outputs, state = tf.nn.rnn(cell, inputs, initial_state=self._initial_state)
         outputs = []
-        state = self._initial_state
-
+        state = self._initial_state #[1,hidden_size]
         # def func_push(state,batch):
         #     self.state_stack.push(state)
         #     return state[0][0][batch], state[0][1][batch], state[1][0][batch], state[1][1][batch]
@@ -121,9 +120,38 @@ class NoInitModel(object):
             self.state_stack.push(state)
             return state[0][0], state[0][1], state[1][0], state[1][1]
 
-        def func_pop():
-            state = self.state_stack.pop()
-            return state[0][0], state[0][1], state[1][0], state[1][1]
+        #todo
+        def func_pop(state):
+            #------增加一层---------------#
+            # w = tf.get_variable(
+            #     "state_w", [2*config.hidden_size, config.hidden_size], dtype=data_type())
+            # # b = tf.get_variable("state_b", [1,config.hidden_size], dtype=data_type())
+            # old_state=self.state_stack.pop()
+            # concat_state=[[],[]]
+            # new_state=[[],[]]
+            # # concat_state=tf.concat([old_state,state],1)
+            # # concat_state=tf.reshape(concat_state,[1,-1])
+            # for i in range(2):
+            #     for j in range(2):
+            #         concat_state[i].append(tf.concat([old_state[i][j],state[i][j]],1))
+            #         new_state[i].append(tf.matmul(concat_state[i][j], w))
+            #---------------------------------
+
+            #--------------pooling-----------------------
+            new_state=[[],[]]
+            old_state = self.state_stack.pop()
+            for i in range(2):
+                for j in range(2):
+                    concat_state=tf.concat([old_state[i][j],state[i][j]],0)
+                    reshape=tf.reshape(tf.reduce_max(concat_state,0),[1,-1])
+                    new_state[i].append(reshape)
+            # print(new_state)
+            #--------------------------------------------
+            return new_state[0][0], new_state[0][1], new_state[1][0], new_state[1][1]
+
+        # def func_pop():
+        #     state = self.state_stack.pop()
+        #     return state[0][0], state[0][1], state[1][0], state[1][1]
 
         def func_default(state):
             return state[0][0], state[0][1], state[1][0], state[1][1]
@@ -162,19 +190,19 @@ class NoInitModel(object):
 
                 new_state = tf.cond(tf.equal(self._input_data[0][time_step], START_MARK),
                                     lambda: func_push(state, time_step), lambda: func_default(state))
-                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(),
+                new_state = tf.cond(tf.equal(self._input_data[0][time_step], END_MARK), lambda: func_pop(state),
                                     lambda: func_default(state))
                 state = ((new_state[0], new_state[1]), (new_state[2], new_state[3]))
 
                 (cell_output, state) = cell(inputs[:, time_step, :], state)
                 outputs.append(cell_output)
 
-        output = tf.reshape(tf.concat(1, outputs), [-1, size])
+        output = tf.reshape(tf.concat(outputs,1), [-1, size])
         softmax_w = tf.get_variable(
             "softmax_w", [size, vocab_size], dtype=data_type())
         softmax_b = tf.get_variable("softmax_b", [vocab_size], dtype=data_type())
         logits = tf.matmul(output, softmax_w) + softmax_b
-        loss = tf.nn.seq2seq.sequence_loss_by_example(
+        loss = tf.contrib.legacy_seq2seq.sequence_loss_by_example(
             [logits],
             [tf.reshape(input_.targets, [-1])],
             [tf.ones([batch_size * num_steps], dtype=data_type())])
@@ -234,7 +262,7 @@ class NoInitModel(object):
 class SmallConfig(object):
     """Small config."""
     init_scale = 0.1
-    learning_rate = 1.0
+    learning_rate = 0.1
     max_grad_norm = 5
     num_layers = 2
     max_data_row=None
@@ -251,7 +279,7 @@ class SmallConfig(object):
 class MediumConfig(object):
     """Medium config."""
     init_scale = 0.05
-    learning_rate = 1.0
+    learning_rate = 1
     max_grad_norm = 5
     num_layers = 2
     num_steps = 35
